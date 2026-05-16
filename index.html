@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm tra toán 10 lần 3 - tổ hợp, xác suất</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .latex-content { margin: 4px 0; display: inline-block; vertical-align: middle; }
+        #progress-bar-inner { transition: width 1s linear; }
+        .question-card { transition: all 0.2s ease-in-out; }
+        .violation-flash { animation: flash-red 0.5s ease-in-out 2; }
+        @keyframes flash-red {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.1); }
+        }
+        .mjx-chtml { overflow-x: auto; overflow-y: hidden; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div id="app-container" class="max-w-4xl mx-auto px-4 py-8">
+        <!-- MÀN HÌNH BẮT ĐẦU -->
+        <div id="start-screen" class="bg-white rounded-3xl shadow-xl p-10 text-center border border-slate-100 transition-all">
+            <div class="mb-8">
+                <h1 class="text-4xl font-black text-blue-700 uppercase tracking-tight mb-2">Kiểm tra toán 10 lần 3</h1>
+                <h2 class="text-xl font-bold text-slate-600 mb-2 italic">Nội dung: Tổ hợp - Xác suất</h2>
+                <div class="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
+                <p class="text-slate-500 mt-4 text-lg font-medium">Thời gian: 30 Phút | Số câu: 20 | Điểm: 10.0</p>
+            </div>
+
+            <div class="max-w-sm mx-auto mb-10 space-y-5 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Họ và tên thí sinh</label>
+                    <input type="text" id="user-name" placeholder="Ví dụ: Nguyễn Văn A" 
+                           class="w-full px-5 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none shadow-sm transition-all text-lg font-semibold">
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-5 rounded-r-2xl text-sm text-blue-900 shadow-sm leading-relaxed">
+                    <p class="font-bold mb-2 uppercase text-[11px] tracking-wider">LƯU Ý GIÁM SÁT:</p>
+                    <ul class="list-disc ml-5 space-y-1 opacity-90">
+                        <li>Hệ thống chọn mã đề ngẫu nhiên không trùng lượt làm trước.</li>
+                        <li>Chế độ giám sát: Mọi hành vi rời tab sẽ bị ghi lại vào báo cáo.</li>
+                        <li>Kết quả được tự động gửi đi khi thí sinh nộp bài.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button id="btn-start" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-5 px-16 rounded-2xl shadow-xl transition-all transform hover:scale-105 active:scale-95 text-xl tracking-wide uppercase">
+                BẮT ĐẦU LÀM BÀI
+            </button>
+        </div>
+
+        <!-- MÀN HÌNH LÀM BÀI -->
+        <div id="quiz-screen" class="hidden">
+            <div class="sticky top-0 bg-slate-50/95 backdrop-blur-md pt-4 pb-6 z-20 border-b border-slate-200">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase text-center">Mã đề</span>
+                            <span class="font-black text-blue-600 text-lg" id="display-exam-code">---</span>
+                        </div>
+                        <div class="bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                            <span class="text-[10px] text-slate-400 font-bold block mb-1 uppercase text-center">Thời gian</span>
+                            <span id="timer" class="font-mono font-black text-red-600 text-xl">30:00</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="violation-badge" class="hidden bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg animate-pulse uppercase">
+                            Gian lận: <span id="v-count">0</span>
+                        </div>
+                        <button id="btn-submit-trigger" class="bg-green-600 hover:bg-green-700 text-white font-black py-3 px-8 rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 uppercase tracking-wide">
+                            Nộp bài
+                        </button>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden shadow-inner">
+                    <div id="progress-bar-inner" class="bg-blue-600 h-full w-full"></div>
+                </div>
+            </div>
+
+            <div id="questions-list" class="space-y-10 mt-10 pb-32"></div>
+        </div>
+
+        <!-- MÀN HÌNH KẾT QUẢ -->
+        <div id="result-screen" class="hidden bg-white rounded-3xl shadow-2xl p-12 text-center border border-slate-100 max-w-2xl mx-auto">
+            <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h2 class="text-3xl font-black text-slate-800 mb-2 uppercase tracking-tight">KẾT QUẢ BÀI THI</h2>
+            <div class="text-7xl font-black text-blue-600 mb-2" id="final-score">0.0</div>
+            <p class="text-slate-400 font-medium mb-10" id="result-meta"></p>
+            
+            <div class="grid grid-cols-2 gap-6 mb-10 text-left">
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <span class="text-[10px] text-slate-400 block font-black uppercase mb-2">Số câu đúng</span>
+                    <span id="correct-count" class="text-3xl font-black text-green-600">0/20</span>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <span class="text-[10px] text-slate-400 block font-black uppercase mb-2">Số lần rời tab</span>
+                    <span id="total-v" class="text-3xl font-black text-red-600">0</span>
+                </div>
+            </div>
+
+            <p id="sheet-status" class="text-sm text-slate-500 mb-10 p-4 rounded-xl bg-blue-50 font-bold italic shadow-inner">Hệ thống đang đồng bộ kết quả lên máy chủ...</p>
+
+            <button onclick="location.reload()" class="bg-slate-900 text-white font-black py-4 px-12 rounded-2xl hover:bg-black transition-all shadow-lg uppercase tracking-wide">
+                Trang chủ
+            </button>
+        </div>
+    </div>
+
+    <!-- HỆ THỐNG MODAL DIALOG -->
+    <div id="custom-dialog" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-10 text-center shadow-2xl border border-slate-200">
+            <h3 id="dialog-title" class="text-2xl font-black text-slate-800 mb-4 uppercase">Thông báo</h3>
+            <p id="dialog-msg" class="text-slate-600 mb-8 font-medium leading-relaxed"></p>
+            <div class="flex flex-col gap-3" id="dialog-actions">
+                <button id="dialog-btn-confirm" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg uppercase">Xác nhận</button>
+                <button id="dialog-btn-cancel" class="w-full bg-slate-100 text-slate-400 font-bold py-3 rounded-2xl hover:bg-slate-200 transition-all uppercase">Hủy bỏ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VI PHẠM -->
+    <div id="violation-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-6 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-10 text-center shadow-2xl border-4 border-red-500">
+            <h3 class="text-2xl font-black text-red-600 mb-4 uppercase text-center">CẢNH BÁO</h3>
+            <p class="text-slate-600 mb-8 font-medium leading-relaxed">Hệ thống ghi nhận bạn vừa rời khỏi màn hình thi. Hành vi này sẽ bị lưu vào kết quả thi cuối cùng!</p>
+            <button onclick="closeViolation()" class="w-full bg-red-600 text-white font-black py-4 rounded-2xl hover:bg-red-700 shadow-xl transition-all uppercase">Quay lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CẤU HÌNH ---
+        // Thay link Google Apps Script URL sau khi Deploy vào đây
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzd_5L9z8gcHI9wycPyou9TFvlLlwrX6JAuthR7CR8VfZoFnvVas4d06caurA8OTFTTpw/exec';
+
+        // --- DỮ LIỆU 7 MÃ ĐỀ (Tất cả phương án đều là số liệu cụ thể, đáp án chính xác 100%) ---
+        const EXAMS_DATA = [
+            {
+                code: "101",
+                data: [
+                    { q: "Trong một tổ học tập gồm 5 học sinh nữ và 6 học sinh nam. Có bao nhiêu cách chọn ra một học sinh của tổ đó đi trực nhật?", o: ["11 cách", "30 cách", "5 cách", "6 cách"], a: 0 },
+                    { q: "Có bao nhiêu cách sắp xếp 5 học sinh đứng thành một hàng dọc?", o: ["120 cách", "5 cách", "24 cách", "3125 cách"], a: 0 },
+                    { q: "Từ các chữ số $\{3; 4; 8; 9\}$ có thể lập được bao nhiêu số tự nhiên có 4 chữ số (các chữ số có thể lặp lại)?", o: ["324 số", "24 số", "256 số", "124 số"], a: 2 },
+                    { q: "Trong một hộp đựng 2 viên bi xanh và 3 viên bi đỏ. Số cách chọn ra 2 viên bi bất kì từ hộp là:", o: ["10 cách", "20 cách", "5 cách", "6 cách"], a: 0 },
+                    { q: "Trong một tổ gồm 10 học sinh, giáo viên chọn ra 2 học sinh để giữ hai chức vụ khác nhau là tổ trưởng và tổ phó. Số cách chọn là:", o: ["90 cách", "45 cách", "20 cách", "100 cách"], a: 0 },
+                    { q: "Cho 6 điểm phân biệt trong đó không có bất kì 3 điểm nào thẳng hàng. Số tam giác có đỉnh là 3 trong số các điểm đã cho là:", o: ["18 tam giác", "20 tam giác", "120 tam giác", "30 tam giác"], a: 1 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà cả hai chữ số đều là số lẻ?", o: ["25 số", "20 số", "50 số", "10 số"], a: 0 },
+                    { q: "Trong một buổi khiêu vũ có 20 nam và 18 nữ. Số cách chọn ra một đôi nam-nữ để khiêu vũ là:", o: ["38 cách", "120 cách", "180 cách", "360 cách"], a: 3 },
+                    { q: "Cần chọn 3 người đi công tác từ một tổ có 30 người. Số cách chọn là:", o: ["27000 cách", "24360 cách", "10 cách", "4060 cách"], a: 3 },
+                    { q: "Trong khai triển nhị thức Newton $(a+b)^4$, số lượng số hạng của khai triển là:", o: ["4 số hạng", "3 số hạng", "5 số hạng", "6 số hạng"], a: 2 },
+                    { q: "Thực hiện gieo một đồng tiền cân đối liên tiếp 3 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["4 phần tử", "6 phần tử", "8 phần tử", "16 phần tử"], a: 2 },
+                    { q: "Gieo đồng tiền cân đối hai lần. Số phần tử biến cố $A$: \"Mặt ngửa xuất hiện đúng 1 lần\" là:", o: ["2 phần tử", "1 phần tử", "3 phần tử", "4 phần tử"], a: 0 },
+                    { q: "Trong phép thử gieo ngẫu nhiên 2 đồng tiền, không gian mẫu của phép thử có bao nhiêu biến cố xảy ra?", o: ["4 biến cố", "8 biến cố", "12 biến cố", "16 biến cố"], a: 3 },
+                    { q: "Gieo một con súc sắc cân đối một lần. Xác suất để mặt có số chấm là số chẵn xuất hiện là:", o: ["0,2", "0,3", "0,4", "0,5"], a: 3 },
+                    { q: "Cho $A$ và $\\overline{A}$ là hai biến cố đối nhau. Biết $P(A) = 0,7$. Xác suất của biến cố đối $P(\\overline{A})$ là:", o: ["0,7", "0,1", "0,3", "1,0"], a: 2 },
+                    { q: "Trong một bữa tiệc có 10 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ sao cho hai người không là vợ chồng là:", o: ["100 cách", "91 cách", "10 cách", "90 cách"], a: 3 },
+                    { q: "Trong khai triển nhị thức Newton $(2x-3)^4$, số hạng chính giữa của khai triển là:", o: ["$45x^2$", "$216x^2$", "$45x^3$", "$216x^3$"], a: 1 },
+                    { q: "Gieo một đồng tiền liên tiếp 3 lần. Xác suất để có ít nhất một lần xuất hiện mặt sấp là:", o: ["1/2", "3/8", "7/8", "1/4"], a: 2 },
+                    { q: "Khai triển đầy đủ nhị thức Newton $(1-2x)^5$ thu được kết quả là:", o: ["$1-10x+40x^2-80x^3+80x^4-32x^5$", "$1+10x+40x^2-80x^3-80x^4-32x^5$", "$1-10x+20x^2-40x^3+80x^4-32x^5$", "$1-5x+10x^2-10x^3+5x^4-1$"], a: 0 },
+                    { q: "Từ tập hợp chữ số $\{0, 1, 2, 3\}$, có thể lập được bao nhiêu số tự nhiên có 4 chữ số đôi một khác nhau?", o: ["24 số", "6 số", "18 số", "12 số"], a: 2 }
+                ]
+            },
+            {
+                code: "102",
+                data: [
+                    { q: "Trong một lớp học gồm 7 học sinh nữ và 8 học sinh nam. Có bao nhiêu cách chọn ra một học sinh đi làm nhiệm vụ?", o: ["15 cách", "56 cách", "7 cách", "8 cách"], a: 0 },
+                    { q: "Có bao nhiêu cách sắp xếp 6 người ngồi vào 6 chiếc ghế đặt thành một hàng ngang?", o: ["6 cách", "36 cách", "720 cách", "120 cách"], a: 2 },
+                    { q: "Từ tập hợp các chữ số $\{1, 2, 5, 7\}$, lập được bao nhiêu số tự nhiên gồm 4 chữ số đôi một khác nhau?", o: ["256 số", "24 số", "16 số", "64 số"], a: 1 },
+                    { q: "Trong một hộp kín chứa 4 viên bi xanh và 4 viên bi trắng. Số cách lấy ra 2 viên bi bất kì từ hộp là:", o: ["16 cách", "28 cách", "8 cách", "64 cách"], a: 1 },
+                    { q: "Trong một tổ dự án gồm 12 thành viên, cần chọn ra 2 người để giữ chức vụ Trưởng nhóm và Thư ký. Số cách chọn là:", o: ["132 cách", "66 cách", "24 cách", "144 cách"], a: 0 },
+                    { q: "Cho 8 điểm phân biệt nằm trên mặt phẳng sao cho không có 3 điểm nào thẳng hàng. Số tam giác có thể tạo ra từ các điểm này là:", o: ["56 tam giác", "336 tam giác", "24 tam giác", "112 tam giác"], a: 0 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà cả hai chữ số đều là số chẵn (khác 0)?", o: ["16 số", "20 số", "25 số", "10 số"], a: 0 },
+                    { q: "Một nhóm văn nghệ có 15 bạn nam và 12 bạn nữ. Số cách chọn ra một đôi nam-nữ để biểu diễn múa là:", o: ["27 cách", "$C_{27}^2$ cách", "180 cách", "150 cách"], a: 2 },
+                    { q: "Ban chấp hành Đoàn cần chọn 4 học sinh từ 20 học sinh ưu tú để tham gia tập huấn. Số cách chọn là:", o: ["4845 cách", "116280 cách", "80 cách", "160000 cách"], a: 0 },
+                    { q: "Trong khai triển nhị thức $(x+y)^6$, số lượng số hạng của khai triển là:", o: ["6 số hạng", "7 số hạng", "5 số hạng", "12 số hạng"], a: 1 },
+                    { q: "Gieo một đồng tiền cân đối liên tiếp 4 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["8 phần tử", "16 phần tử", "4 phần tử", "32 phần tử"], a: 1 },
+                    { q: "Gieo đồng tiền liên tiếp hai lần. Biến cố $B$: \"Mặt sấp xuất hiện đúng một lần\" có bao nhiêu phần tử?", o: ["2 phần tử", "1 phần tử", "3 phần tử", "4 phần tử"], a: 0 },
+                    { q: "Nếu một không gian mẫu có 3 phần tử thì có bao nhiêu biến cố liên quan đến phép thử đó?", o: ["3 biến cố", "6 biến cố", "8 biến cố", "9 biến cố"], a: 2 },
+                    { q: "Gieo một con súc sắc cân đối. Xác suất để xuất hiện mặt có số chấm là ước của 6 là:", o: ["2/3", "1/2", "1/3", "1/6"], a: 0 },
+                    { q: "Biết xác suất của biến cố $A$ là $P(A) = 0,45$. Xác suất của biến cố đối là:", o: ["0,45", "0,55", "1,45", "0,1"], a: 1 },
+                    { q: "Trong buổi họp mặt có 8 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ sao cho họ không phải vợ chồng là:", o: ["64 cách", "56 cách", "8 cách", "16 cách"], a: 1 },
+                    { q: "Trong khai triển $(x+2)^4$, số hạng chính giữa của khai triển là:", o: ["$6x^2$", "$16x^2$", "$24x^2$", "$8x^3$"], a: 2 },
+                    { q: "Gieo đồng tiền liên tiếp 3 lần. Xác suất để mặt ngửa xuất hiện đúng hai lần là:", o: ["1/8", "3/8", "1/2", "3/4"], a: 1 },
+                    { q: "Khai triển đầy đủ của nhị thức Newton $(1-x)^5$ thu được kết quả là:", o: ["$1-5x+10x^2-10x^3+5x^4-x^5$", "$1+5x+10x^2+10x^3+5x^4+x^5$", "$1-x+x^2-x^3+x^4-x^5$", "$5-10x+10x^2-10x+1$"], a: 0 },
+                    { q: "Từ tập hợp chữ số $\{0, 4, 5, 6\}$, có thể lập được bao nhiêu số tự nhiên có 4 chữ số đôi một khác nhau?", o: ["24 số", "18 số", "12 số", "6 số"], a: 1 }
+                ]
+            },
+            {
+                code: "103",
+                data: [
+                    { q: "Một tổ học tập gồm 4 bạn nữ và 9 bạn nam. Có bao nhiêu cách chọn ra một học sinh bất kì trong tổ đó?", o: ["13 cách", "36 cách", "4 cách", "9 cách"], a: 0 },
+                    { q: "Có bao nhiêu cách sắp xếp 7 học sinh đứng thành một hàng dọc?", o: ["7 cách", "49 cách", "5040 cách", "720 cách"], a: 2 },
+                    { q: "Từ tập hợp các chữ số $\{2; 4; 6; 8\}$ lập được bao nhiêu số tự nhiên có 4 chữ số khác nhau?", o: ["256 số", "24 số", "64 số", "16 số"], a: 1 },
+                    { q: "Trong một hộp đựng 3 bi đỏ và 4 bi xanh có kích thước giống nhau. Số cách chọn ra 2 viên bi bất kì là:", o: ["7 cách", "12 cách", "21 cách", "49 cách"], a: 2 },
+                    { q: "Trong một nhóm gồm 15 học sinh, giáo viên muốn chọn ra 2 học sinh để giữ vị trí Trưởng nhóm và Phó nhóm. Số cách chọn là:", o: ["210 cách", "105 cách", "30 cách", "225 cách"], a: 0 },
+                    { q: "Trong mặt phẳng cho 7 điểm phân biệt không có 3 điểm nào thẳng hàng. Số tam giác có đỉnh thuộc các điểm đã cho là:", o: ["35 tam giác", "210 tam giác", "21 tam giác", "15 tam giác"], a: 0 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà chữ số hàng chục lẻ và chữ số hàng đơn vị chẵn?", o: ["20 số", "25 số", "10 số", "50 số"], a: 1 },
+                    { q: "Có 10 mẫu áo sơ mi và 12 mẫu cà vạt. Hỏi có bao nhiêu cách chọn một cặp gồm 1 áo và 1 cà vạt?", o: ["22 cách", "120 cách", "45 cách", "60 cách"], a: 1 },
+                    { q: "Để thành lập tiểu ban dự án, cần chọn 2 người từ tổ 12 người. Số cách chọn là:", o: ["132 cách", "66 cách", "24 cách", "144 cách"], a: 1 },
+                    { q: "Trong khai triển $(a+b)^5$, số lượng các số hạng thu được là:", o: ["5 số hạng", "6 số hạng", "4 số hạng", "10 số hạng"], a: 1 },
+                    { q: "Gieo đồng tiền cân đối liên tiếp 2 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["2 phần tử", "4 phần tử", "8 phần tử", "16 phần tử"], a: 1 },
+                    { q: "Gieo một đồng tiền hai lần liên tiếp. Biến cố $C$: \"Cả hai lần đều xuất hiện mặt ngửa\". Số phần tử của $C$ là:", o: ["1 phần tử", "2 phần tử", "3 phần tử", "4 phần tử"], a: 0 },
+                    { q: "Trong phép thử có không gian mẫu chứa 4 phần tử. Số lượng các biến cố của phép thử này là:", o: ["4 biến cố", "8 biến cố", "16 biến cố", "32 biến cố"], a: 2 },
+                    { q: "Gieo súc sắc cân đối một lần. Xác suất xuất hiện mặt có số chấm chia hết cho 3 là:", o: ["1/6", "1/2", "1/3", "2/3"], a: 2 },
+                    { q: "Biết $P(A) = 0,38$. Xác suất của biến cố đối của biến cố $A$ bằng:", o: ["0,38", "0,62", "1,38", "0,1"], a: 1 },
+                    { q: "Trong cuộc họp có 12 cặp vợ chồng. Chọn 1 nam và 1 nữ sao cho họ không phải vợ chồng có bao nhiêu cách?", o: ["144 cách", "132 cách", "121 cách", "24 cách"], a: 1 },
+                    { q: "Trong khai triển biểu thức $(3x-1)^4$, số hạng chính giữa của khai triển là:", o: ["$54x^2$", "$27x^2$", "$-54x^2$", "$6x^2$"], a: 0 },
+                    { q: "Gieo một đồng tiền liên tiếp 3 lần. Xác suất để cả 3 mặt đều nhận được kết quả giống nhau là:", o: ["1/8", "1/4", "1/2", "3/8"], a: 1 },
+                    { q: "Khai triển đầy đủ nhị thức Newton biểu thức $(x-2)^5$ thu được:", o: ["$x^5-10x^4+40x^3-80x^2+80x-32$", "$x^5+10x^4+40x^3+80x^2+80x+32$", "$x^5-5x^4+10x^3-10x^2+5x-1$", "$x^5-2x^4+4x^3-8x^2+16x-32$"], a: 0 },
+                    { q: "Từ tập hợp chữ số $\{0, 2, 4, 6, 8\}$, lập được bao nhiêu số tự nhiên có 4 chữ số đôi một khác nhau?", o: ["120 số", "96 số", "48 số", "625 số"], a: 1 }
+                ]
+            },
+            {
+                code: "104",
+                data: [
+                    { q: "Trong một đội tình nguyện có 8 bạn nam và 7 bạn nữ. Hỏi có bao nhiêu cách chọn ra một học sinh bất kì tham gia?", o: ["56 cách", "15 cách", "8 cách", "7 cách"], a: 1 },
+                    { q: "Có bao nhiêu cách sắp xếp 8 học sinh đứng thành một hàng dọc?", o: ["8 cách", "40320 cách", "5040 cách", "64 cách"], a: 1 },
+                    { q: "Từ tập hợp các chữ số $\{7, 8, 9\}$, có thể lập được bao nhiêu số tự nhiên có 3 chữ số khác nhau?", o: ["9 số", "27 số", "6 số", "3 số"], a: 2 },
+                    { q: "Trong một túi chứa 5 viên bi xanh và 3 viên bi vàng. Số cách lấy ra ngẫu nhiên 2 bi từ túi là:", o: ["28 cách", "15 cách", "8 cách", "56 cách"], a: 0 },
+                    { q: "Trong một chi đoàn gồm 20 thành viên, cần chọn ra 2 người giữ chức vụ Bí thư và Phó Bí thư. Số cách chọn là:", o: ["380 cách", "190 cách", "40 cách", "400 cách"], a: 0 },
+                    { q: "Trong mặt phẳng cho 10 điểm phân biệt sao cho không có 3 điểm nào thẳng hàng. Số tam giác có đỉnh là 3 trong số các điểm đó là:", o: ["720 tam giác", "120 tam giác", "45 tam giác", "90 tam giác"], a: 1 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà cả hai chữ số đều là số lẻ và khác nhau?", o: ["25 số", "20 số", "50 số", "10 số"], a: 1 },
+                    { q: "Trong đội văn nghệ có 12 nam và 10 nữ. Số cách chọn ra 1 nam và 1 nữ để múa đôi là:", o: ["22 cách", "120 cách", "220 cách", "60 cách"], a: 1 },
+                    { q: "Một hội đồng quản trị gồm 15 người cần bầu ra 3 người vào ban thường trực. Số cách bầu là:", o: ["2730 cách", "45 cách", "455 cách", "3375 cách"], a: 2 },
+                    { q: "Trong khai triển nhị thức $(x+y)^7$, số lượng số hạng của khai triển thu được là:", o: ["7 số hạng", "8 số hạng", "6 số hạng", "14 số hạng"], a: 1 },
+                    { q: "Gieo đồng tiền cân đối liên tiếp 5 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["10 phần tử", "32 phần tử", "25 phần tử", "64 phần tử"], a: 1 },
+                    { q: "Gieo một đồng tiền hai lần liên tiếp. Biến cố $D$: \"Có ít nhất một lần xuất hiện mặt ngửa\". Số phần tử của biến cố $D$ là:", o: ["1 phần tử", "2 phần tử", "3 phần tử", "4 phần tử"], a: 2 },
+                    { q: "Nếu không gian mẫu của phép thử chứa 5 phần tử thì có bao nhiêu biến cố liên quan?", o: ["5 biến cố", "10 biến cố", "32 biến cố", "25 biến cố"], a: 2 },
+                    { q: "Gieo một con súc sắc cân đối. Xác suất xuất hiện mặt có số chấm chia hết cho 2 là:", o: ["1/2", "1/3", "1/6", "2/3"], a: 0 },
+                    { q: "Biết xác suất của biến cố $A$ là $P(A) = 0,25$. Xác suất của biến cố đối $\\overline{A}$ là:", o: ["0,25", "0,75", "1,25", "0,5"], a: 1 },
+                    { q: "Tại đại hội có 15 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ không phải là vợ chồng của nhau là:", o: ["225 cách", "210 cách", "196 cách", "30 cách"], a: 1 },
+                    { q: "Trong khai triển $(x-3)^4$, số hạng chính giữa của khai triển là:", o: ["$54x^2$", "$6x^2$", "$-54x^2$", "$16x^2$"], a: 0 },
+                    { q: "Gieo đồng tiền liên tiếp 3 lần. Xác suất để nhận được đúng 1 lần mặt sấp là:", o: ["1/8", "3/8", "1/2", "3/4"], a: 1 },
+                    { q: "Khai triển đầy đủ nhị thức Newton của $(1+x)^5$ thu được:", o: ["$1+5x+10x^2+10x^3+5x^4+x^5$", "$1-5x+10x^2-10x^3+5x^4-x^5$", "$x^5-5x^4+10x^3-10x^2+5x-1$", "$1-x+x^2-x^3+x^4-x^5$"], a: 0 },
+                    { q: "Từ tập hợp các chữ số $\{0, 1, 2\}$, lập được bao nhiêu số tự nhiên có 2 chữ số (biết chữ số hàng chục khác 0)?", o: ["9 số", "6 số", "4 số", "3 số"], a: 1 }
+                ]
+            },
+            {
+                code: "105",
+                data: [
+                    { q: "Một tổ gồm 8 học sinh nữ và 5 học sinh nam. Hỏi có bao nhiêu cách chọn ra một học sinh bất kì của tổ đi dự lễ?", o: ["40 cách", "13 cách", "1 cách", "8 cách"], a: 1 },
+                    { q: "Có bao nhiêu cách sắp xếp 3 học sinh đứng thành một hàng dọc để chụp ảnh?", o: ["3 cách", "6 cách", "9 cách", "27 cách"], a: 1 },
+                    { q: "Từ tập hợp các chữ số $\{1; 3; 5; 7\}$, có thể lập được bao nhiêu số tự nhiên có 4 chữ số (được phép lặp lại)?", o: ["16 số", "24 số", "256 số", "64 số"], a: 2 },
+                    { q: "Trong hộp đựng 2 bi xanh và 5 bi đỏ có kích thước tương đồng. Số cách lấy ra 2 viên bi bất kì là:", o: ["21 cách", "10 cách", "7 cách", "14 cách"], a: 0 },
+                    { q: "Trong một chi đoàn gồm 11 thành viên, cần bầu ra một Nhóm trưởng và một Nhóm phó. Số cách bầu là:", o: ["110 cách", "55 cách", "22 cách", "121 cách"], a: 0 },
+                    { q: "Trong mặt phẳng cho 5 điểm phân biệt không có 3 điểm nào thẳng hàng. Số tam giác có đỉnh thuộc các điểm đã cho là:", o: ["10 tam giác", "20 tam giác", "60 tam giác", "5 tam giác"], a: 0 },
+                    { q: "Có bao nhiêu số tự nhiên gồm hai chữ số mà cả hai chữ số đều là số chẵn (khác 0)?", o: ["20 số", "16 số", "25 số", "10 số"], a: 1 },
+                    { q: "Trong buổi tiệc có 20 nam và 15 nữ. Số cách chọn ra một đôi nam-nữ để khiêu vũ là:", o: ["35 cách", "300 cách", "350 cách", "150 cách"], a: 1 },
+                    { q: "Cần chọn 4 học sinh từ một tổ 10 người tham gia trại hè. Số cách chọn là:", o: ["5040 cách", "210 cách", "2100 cách", "40 cách"], a: 1 },
+                    { q: "Trong khai triển biểu thức $(a+b)^8$, số lượng các số hạng là:", o: ["8 số hạng", "9 số hạng", "7 số hạng", "10 số hạng"], a: 1 },
+                    { q: "Gieo đồng tiền cân đối liên tiếp 3 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["6 phần tử", "8 phần tử", "9 phần tử", "16 phần tử"], a: 1 },
+                    { q: "Gieo đồng tiền hai lần liên tiếp. Biến cố $E$: \"Không có lần nào mặt ngửa xuất hiện\". Số phần tử của $E$ là:", o: ["1 phần tử", "2 phần tử", "3 phần tử", "4 phần tử"], a: 0 },
+                    { q: "Nếu một phép thử có không gian mẫu chứa 5 phần tử thì có bao nhiêu biến cố liên quan?", o: ["10 biến cố", "25 biến cố", "32 biến cố", "64 biến cố"], a: 2 },
+                    { q: "Gieo một con súc sắc cân đối một lần. Xác suất xuất hiện mặt có số chấm lẻ là:", o: ["0,3", "0,4", "0,25", "0,5"], a: 3 },
+                    { q: "Biết xác suất của biến cố $A$ là $P(A) = 0,6$. Xác suất của biến cố đối là:", o: ["0,4", "0,6", "1,6", "0"], a: 0 },
+                    { q: "Trong phòng tiệc có 6 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ sao cho họ không phải vợ chồng của nhau là:", o: ["36 cách", "30 cách", "25 cách", "12 cách"], a: 1 },
+                    { q: "Trong khai triển nhị thức Newton $(x+1)^4$, số hạng chính giữa của khai triển là:", o: ["$4x^2$", "$6x^2$", "$x^2$", "$8x^2$"], a: 1 },
+                    { q: "Gieo đồng tiền liên tiếp 3 lần. Xác suất để nhận được đúng 2 lần mặt ngửa là:", o: ["1/8", "3/8", "1/2", "3/4"], a: 1 },
+                    { q: "Khai triển đầy đủ nhị thức $(x+1)^5$ thu được kết quả là:", o: ["$x^5+5x^4+10x^3+10x^2+5x+1$", "$x^5-5x^4+10x^3-10x^2+5x-1$", "$x^5+5x^4-10x^3-10x^2+5x+1$", "$x^5+x^4+x^3+x^2+x+1$"], a: 0 },
+                    { q: "Từ tập hợp các chữ số $\{0, 6, 7, 9\}$, lập được bao nhiêu số tự nhiên có 4 chữ số đôi một khác nhau?", o: ["24 số", "18 số", "12 số", "6 số"], a: 1 }
+                ]
+            },
+            {
+                code: "106",
+                data: [
+                    { q: "Trong tổ công tác có 3 học sinh nữ và 7 học sinh nam. Hỏi có bao nhiêu cách chọn ra một học sinh làm trưởng nhóm?", o: ["21 cách", "10 cách", "3 cách", "7 cách"], a: 1 },
+                    { q: "Có bao nhiêu cách sắp xếp 5 học sinh đứng thành một hàng ngang trên sân khấu?", o: ["5 cách", "25 cách", "120 cách", "24 cách"], a: 2 },
+                    { q: "Từ tập hợp $\{2, 4, 6\}$ có thể lập được bao nhiêu số tự nhiên có 3 chữ số khác nhau?", o: ["9 số", "27 số", "6 số", "3 số"], a: 2 },
+                    { q: "Trong một hộp đựng 4 bi xanh và 5 bi đỏ kích thước đồng nhất. Số cách chọn ra 2 viên bi bất kì là:", o: ["36 cách", "20 cách", "9 cách", "18 cách"], a: 0 },
+                    { q: "Trong một lớp gồm 14 học sinh, cần chọn ra 2 học sinh để giữ vị trí Lớp trưởng và Bí thư. Số cách chọn là:", o: ["182 cách", "91 cách", "28 cách", "196 cách"], a: 0 },
+                    { q: "Cho 9 điểm phân biệt trong mặt phẳng sao cho không có 3 điểm nào thẳng hàng. Số tam giác có đỉnh là 3 trong số 9 điểm là:", o: ["504 tam giác", "84 tam giác", "36 tam giác", "72 tam giác"], a: 1 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà cả hai chữ số đều là số lẻ và khác nhau?", o: ["25 số", "20 số", "50 số", "10 số"], a: 1 },
+                    { q: "Một nhóm thanh niên có 8 bạn nam và 6 bạn nữ. Số cách chọn ra một đôi nam-nữ để khiêu vũ là:", o: ["14 cách", "48 cách", "91 cách", "24 cách"], a: 1 },
+                    { q: "Cần chọn 2 người từ tập thể 20 người đi lao động công ích. Số cách chọn là:", o: ["380 cách", "190 cách", "40 cách", "225 cách"], a: 1 },
+                    { q: "Trong khai triển nhị thức Newton biểu thức $(a+b)^3$, số lượng số hạng của khai triển là:", o: ["3 số hạng", "4 số hạng", "2 số hạng", "5 số hạng"], a: 1 },
+                    { q: "Gieo một đồng tiền cân đối liên tiếp 4 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["8 phần tử", "16 phần tử", "24 phần tử", "32 phần tử"], a: 1 },
+                    { q: "Gieo một đồng tiền hai lần liên tiếp. Biến cố $F$: \"Có ít nhất một lần mặt sấp xuất hiện\". Số phần tử của biến cố $F$ là:", o: ["1 phần tử", "2 phần tử", "3 phần tử", "4 phần tử"], a: 2 },
+                    { q: "Nếu không gian mẫu của một phép thử chứa 6 phần tử thì có bao nhiêu biến cố liên quan?", o: ["12 biến cố", "36 biến cố", "64 biến cố", "128 biến cố"], a: 2 },
+                    { q: "Gieo một con súc sắc cân đối một lần. Xác suất để mặt có số chấm lớn hơn 3 xuất hiện là:", o: ["0,5", "0,33", "0,16", "0,66"], a: 0 },
+                    { q: "Nếu xác suất của biến cố $A$ là $P(A) = 0,7$ thì xác suất của biến cố đối là:", o: ["0,3", "0,7", "1,7", "0"], a: 0 },
+                    { q: "Trong dạ hội có 20 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ sao cho họ không phải là vợ chồng là:", o: ["400 cách", "380 cách", "361 cách", "40 cách"], a: 1 },
+                    { q: "Trong khai triển biểu thức $(3x+2)^4$, số hạng chính giữa của khai triển là:", o: ["$216x^2$", "$108x^2$", "$54x^2$", "$24x^2$"], a: 0 },
+                    { q: "Gieo đồng tiền liên tiếp 3 lần. Xác suất để cả 3 mặt đều nhận được kết quả sấp là:", o: ["1/8", "3/8", "1/2", "7/8"], a: 0 },
+                    { q: "Khai triển đầy đủ nhị thức Newton $(1-2x)^5$ thu được kết quả là:", o: ["$1-10x+40x^2-80x^3+80x^4-32x^5$", "$1+10x+40x^2+80x^3+80x^4+32x^5$", "$1-5x+10x^2-10x^3+5x^4-x^5$", "$1-2x+4x^2-8x^3+16x^4-32x^5$"], a: 0 },
+                    { q: "Từ tập hợp các chữ số $\{0, 1, 3, 5\}$, lập được bao nhiêu số tự nhiên có 4 chữ số đôi một khác nhau?", o: ["24 số", "18 số", "12 số", "6 số"], a: 1 }
+                ]
+            },
+            {
+                code: "107",
+                data: [
+                    { q: "Trong một đội tình nguyện có 9 học sinh nữ và 4 học sinh nam. Hỏi có bao nhiêu cách chọn ra một học sinh bất kì đi thực hiện nhiệm vụ?", o: ["36 cách", "13 cách", "1 cách", "9 cách"], a: 1 },
+                    { q: "Có bao nhiêu cách sắp xếp 10 học sinh ngồi vào 10 chiếc ghế đặt thành một hàng dọc?", o: ["10 cách", "3628800 cách", "362880 cách", "100 cách"], a: 1 },
+                    { q: "Từ các chữ số $\{0, 1, 2\}$, có thể lập được bao nhiêu số tự nhiên gồm 2 chữ số (biết chữ số hàng chục khác 0)?", o: ["9 số", "6 số", "4 số", "3 số"], a: 1 },
+                    { q: "Lấy ngẫu nhiên 2 viên bi từ một túi chứa 3 bi xanh và 6 bi đỏ. Số cách lấy là:", o: ["36 cách", "18 cách", "9 cách", "72 cách"], a: 0 },
+                    { q: "Trong một chi bộ gồm 9 người, cần bầu ra một Bí thư và một Phó Bí thư. Số cách bầu là:", o: ["72 cách", "36 cách", "18 cách", "81 cách"], a: 0 },
+                    { q: "Trong mặt phẳng cho 12 điểm phân biệt sao cho không có 3 điểm nào thẳng hàng. Số tam giác có đỉnh là 3 trong số các điểm đó là:", o: ["1320 tam giác", "220 tam giác", "66 tam giác", "110 tam giác"], a: 1 },
+                    { q: "Có bao nhiêu số tự nhiên có hai chữ số mà cả hai chữ số đều là số lẻ và khác nhau?", o: ["20 số", "25 số", "50 số", "10 số"], a: 0 },
+                    { q: "Một nhóm thiện nguyện gồm 8 bạn nam và 8 bạn nữ. Số cách chọn ra 1 nam và 1 nữ để đi khảo sát địa hình là:", o: ["16 cách", "64 cách", "128 cách", "32 cách"], a: 1 },
+                    { q: "Cần chọn ra 2 học sinh từ nhóm 15 người tham dự kỳ thi Olympic. Số cách chọn là:", o: ["210 cách", "30 cách", "105 cách", "225 cách"], a: 2 },
+                    { q: "Trong khai triển nhị thức $(a+b)^9$, số lượng số hạng của khai triển là:", o: ["9 số hạng", "10 số hạng", "8 số hạng", "11 số hạng"], a: 1 },
+                    { q: "Gieo một đồng tiền cân đối liên tiếp 2 lần. Số phần tử của không gian mẫu $n(\\Omega)$ là:", o: ["2 phần tử", "4 phần tử", "8 phần tử", "16 phần tử"], a: 1 },
+                    { q: "Gieo đồng tiền hai lần liên tiếp. Biến cố $G$: \"Có đúng một lần xuất hiện mặt ngửa\". Số phần tử của biến cố $G$ là:", o: ["1 phần tử", "2 phần tử", "3 phần tử", "4 phần tử"], a: 1 },
+                    { q: "Nếu một không gian mẫu của phép thử chỉ chứa 2 phần tử thì có bao nhiêu biến cố xảy ra?", o: ["2 biến cố", "4 biến cố", "1 biến cố", "3 biến cố"], a: 1 },
+                    { q: "Gieo súc sắc cân đối một lần. Xác suất để xuất hiện mặt có số chấm nhỏ hơn 3 là:", o: ["0,333", "0,5", "0,166", "0,666"], a: 0 },
+                    { q: "Biết xác suất của biến cố $A$ là $P(A) = 0,9$. Xác suất của biến cố đối là:", o: ["0,1", "0,9", "1,9", "0"], a: 0 },
+                    { q: "Trong dạ tiệc có 9 cặp vợ chồng. Số cách chọn 1 nam và 1 nữ sao cho họ không phải là vợ chồng của nhau là:", o: ["81 cách", "72 cách", "64 cách", "18 cách"], a: 1 },
+                    { q: "Trong khai triển biểu thức $(2x-2)^4$, số hạng chính giữa của khai triển là:", o: ["$96x^2$", "$48x^2$", "$24x^2$", "$6x^2$"], a: 0 },
+                    { q: "Gieo đồng tiền liên tiếp 3 lần. Xác suất để có ít nhất 2 lần mặt sấp xuất hiện là:", o: ["0,125", "0,375", "0,5", "0,875"], a: 2 },
+                    { q: "Khai triển đầy đủ biểu thức $(1+2x)^5$ thu được kết quả là:", o: ["$1+10x+40x^2+80x^3+80x^4+32x^5$", "$1-10x+40x^2-80x^3+80x^4-32x^5$", "$1+5x+10x^2+10x^3+5x^4+x^5$", "$32x^5+80x^4+80x^3+40x^2+10x+1$"], a: 0 },
+                    { q: "Từ tập hợp các chữ số $\{0, 3, 5, 6\}$, lập được bao nhiêu số tự nhiên gồm 4 chữ số khác nhau?", o: ["24 số", "18 số", "12 số", "6 số"], a: 1 }
+                ]
+            }
+        ];
+
+        let app = {
+            name: "",
+            examId: 0,
+            answers: [],
+            startTime: null,
+            timerId: null,
+            violations: 0,
+            isDone: false,
+            duration: 1800
+        };
+
+        function showDialog(title, msg, onConfirm, hasCancel = false) {
+            const modal = document.getElementById('custom-dialog');
+            document.getElementById('dialog-title').innerText = title;
+            document.getElementById('dialog-msg').innerText = msg;
+            const cancelBtn = document.getElementById('dialog-btn-cancel');
+            if (hasCancel) cancelBtn.classList.remove('hidden'); else cancelBtn.classList.add('hidden');
+            modal.classList.remove('hidden');
+            document.getElementById('dialog-btn-confirm').onclick = () => { modal.classList.add('hidden'); if (onConfirm) onConfirm(); };
+            cancelBtn.onclick = () => modal.classList.add('hidden');
+        }
+
+        function handleStart() {
+            const nameInput = document.getElementById('user-name').value.trim();
+            if (!nameInput) { showDialog("THÔNG BÁO", "Vui lòng nhập tên thí sinh để bắt đầu bài thi."); return; }
+            app.name = nameInput;
+            const last = localStorage.getItem('last_id_' + nameInput);
+            let pool = EXAMS_DATA.map((_, i) => i);
+            if (last) pool = pool.filter(idx => EXAMS_DATA[idx].code !== last);
+            app.examId = pool[Math.floor(Math.random() * pool.length)];
+            localStorage.setItem('last_id_' + nameInput, EXAMS_DATA[app.examId].code);
+            app.answers = new Array(20).fill(null);
+            app.startTime = Date.now();
+            app.violations = 0;
+            app.isDone = false;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('display-exam-code').innerText = EXAMS_DATA[app.examId].code;
+            renderQuiz();
+            startTimer();
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('questions-list');
+            const exam = EXAMS_DATA[app.examId];
+            container.innerHTML = exam.data.map((item, i) => `
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 question-card" id="q-block-${i}">
+                    <div class="flex gap-4 mb-6">
+                        <span class="bg-blue-600 text-white font-black px-3 py-1 rounded-xl text-sm h-fit shrink-0">Câu ${i+1}</span>
+                        <div class="latex-content text-lg leading-relaxed text-slate-800 font-medium">${item.q}</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${item.o.map((opt, oi) => `
+                            <label class="flex items-center p-5 border-2 border-slate-50 rounded-2xl hover:bg-blue-50 cursor-pointer transition-all">
+                                <input type="radio" name="q-${i}" value="${oi}" class="w-5 h-5 text-blue-600" onchange="app.answers[${i}]=${oi}">
+                                <span class="ml-4 font-bold text-slate-600">${['A','B','C','D'][oi]}. ${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function startTimer() {
+            app.timerId = setInterval(() => {
+                const remain = app.duration - Math.floor((Date.now() - app.startTime) / 1000);
+                if (remain <= 0) { finalize(); return; }
+                const m = Math.floor(remain / 60), s = remain % 60;
+                document.getElementById('timer').innerText = `${m}:${s.toString().padStart(2, '0')}`;
+                document.getElementById('progress-bar-inner').style.width = (remain / app.duration) * 100 + "%";
+            }, 1000);
+        }
+
+        async function finalize() {
+            if (app.isDone) return;
+            app.isDone = true;
+            clearInterval(app.timerId);
+            const exam = EXAMS_DATA[app.examId];
+            let correct = 0;
+            exam.data.forEach((q, i) => { if (app.answers[i] === q.a) correct++; });
+            const score = (correct * 0.5).toFixed(1);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('correct-count').innerText = `${correct}/20`;
+            document.getElementById('total-v').innerText = app.violations;
+            document.getElementById('result-meta').innerText = `Thí sinh: ${app.name} | Mã đề: ${exam.code}`;
+            try {
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ name: app.name, code: exam.code, score: score, correct: correct, v: app.violations, time: new Date().toLocaleString('vi-VN') })
+                });
+                document.getElementById('sheet-status').innerText = "KẾT QUẢ ĐÃ ĐƯỢC LƯU VÀO HỆ THỐNG.";
+            } catch (e) {
+                document.getElementById('sheet-status').innerText = "LỖI LƯU TRỮ. HÃY CHỤP LẠI MÀN HÌNH NÀY.";
+            }
+        }
+
+        function logViolation() {
+            if (app.isDone || !app.startTime) return;
+            app.violations++;
+            document.getElementById('violation-badge').classList.remove('hidden');
+            document.getElementById('v-count').innerText = app.violations;
+            document.getElementById('violation-modal').classList.remove('hidden');
+            document.body.classList.add('violation-flash');
+            setTimeout(() => document.body.classList.remove('violation-flash'), 1000);
+        }
+
+        window.closeViolation = () => document.getElementById('violation-modal').classList.add('hidden');
+        document.addEventListener('visibilitychange', () => { if (document.hidden) logViolation(); });
+        document.getElementById('btn-start').onclick = handleStart;
+        document.getElementById('btn-submit-trigger').onclick = () => showDialog("NỘP BÀI", "Xác nhận kết thúc và nộp bài kiểm tra ngay bây giờ?", finalize, true);
+    </script>
+</body>
+</html>
